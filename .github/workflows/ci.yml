@@ -1,0 +1,35 @@
+name: CI Pipeline - Fiverr Order Service
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Verify DDD Architecture Rules (No Repository in port/out)
+        run: |
+          if find src/main/java -path "*/application/port/out/*Repository*.java" | grep -q .; then
+            echo "ERROR: Repository interface found in application/port/out/! Repositories must reside in domain/repository/."
+            exit 1
+          fi
+
+      - name: Run Maven Verify & Unit Tests
+        run: mvn -B clean verify
+
+      - name: Build Docker Image
+        run: docker build -t club.fiverr/fiverr-order-service:${{ github.sha }} .
