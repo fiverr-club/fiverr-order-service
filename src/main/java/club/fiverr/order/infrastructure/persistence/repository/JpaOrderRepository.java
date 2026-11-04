@@ -33,6 +33,13 @@ public class JpaOrderRepository implements OrderRepository {
     }
 
     @Override
+    public List<Order> findAll() {
+        return jpaRepository.findAll().stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<Order> findByBuyerId(UUID buyerId) {
         return jpaRepository.findByBuyerIdOrderByCreatedAtDesc(buyerId).stream()
                 .map(mapper::toDomain)

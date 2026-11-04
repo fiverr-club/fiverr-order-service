@@ -3,6 +3,7 @@ package club.fiverr.order.presentation.rest;
 import club.fiverr.order.application.dto.result.OrderResult;
 import club.fiverr.order.application.port.in.CompleteOrderUseCase;
 import club.fiverr.order.application.port.in.DeliverOrderUseCase;
+import club.fiverr.order.application.port.in.GetOrderUseCase;
 import club.fiverr.order.application.port.in.PlaceOrderUseCase;
 import club.fiverr.order.application.port.in.RequestRevisionUseCase;
 import club.fiverr.order.presentation.rest.mapper.OrderRestMapper;
@@ -14,12 +15,14 @@ import club.fiverr.order.presentation.rest.response.OrderResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -30,17 +33,34 @@ public class OrderController {
     private final DeliverOrderUseCase deliverOrderUseCase;
     private final RequestRevisionUseCase requestRevisionUseCase;
     private final CompleteOrderUseCase completeOrderUseCase;
+    private final GetOrderUseCase getOrderUseCase;
 
     public OrderController(
             PlaceOrderUseCase placeOrderUseCase,
             DeliverOrderUseCase deliverOrderUseCase,
             RequestRevisionUseCase requestRevisionUseCase,
-            CompleteOrderUseCase completeOrderUseCase
+            CompleteOrderUseCase completeOrderUseCase,
+            GetOrderUseCase getOrderUseCase
     ) {
         this.placeOrderUseCase = placeOrderUseCase;
         this.deliverOrderUseCase = deliverOrderUseCase;
         this.requestRevisionUseCase = requestRevisionUseCase;
         this.completeOrderUseCase = completeOrderUseCase;
+        this.getOrderUseCase = getOrderUseCase;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<OrderResponse>> getAllOrders() {
+        List<OrderResponse> responses = getOrderUseCase.getAll().stream()
+                .map(OrderRestMapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderResponse> getOrderById(@PathVariable UUID orderId) {
+        OrderResult result = getOrderUseCase.getById(orderId);
+        return ResponseEntity.ok(OrderRestMapper.toResponse(result));
     }
 
     @PostMapping

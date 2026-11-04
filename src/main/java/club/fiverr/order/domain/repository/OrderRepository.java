@@ -12,6 +12,8 @@ public interface OrderRepository {
 
     Optional<Order> findById(UUID id);
 
+    List<Order> findAll();
+
     List<Order> findByBuyerId(UUID buyerId);
 
     List<Order> findBySellerId(UUID sellerId);
